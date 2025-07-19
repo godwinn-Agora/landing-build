@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page introuvable – Agora</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .icon {
+      width: 80px;
+      height: 80px;
+      color: #004080;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 2em;
+      color: #004080;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1.1em;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    a.button {
+      background-color: #004080;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    a.button:hover {
+      background-color: #0066cc;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5em;
+      }
+
+      p {
+        font-size: 1em;
+      }
+
+      .icon {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Icône d'erreur Heroicons -->
+  <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none"
+       viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 9v2m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
+  </svg>
+
+  <h1>404 - Page introuvable</h1>
+  <p>Désolé, la page que vous cherchez n'existe pas ou a été déplacée.</p>
+  <a href="/" class="button">Retour à l'accueil</a>
+
+</body>
+</html>

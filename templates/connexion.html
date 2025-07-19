@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion - Agora</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      background-color: #004080;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+
+    .navbar-logo svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .navbar-links a {
+      color: white;
+      text-decoration: none;
+      margin-left: 15px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 40px auto;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      text-align: center;
+      color: #004080;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+
+    button[type="submit"] {
+      margin-top: 20px;
+      background-color: #004080;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 1em;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #0066cc;
+    }
+
+    .flash {
+      margin: 15px 0;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      color: white;
+      animation: fadein 0.5s ease-in-out;
+    }
+
+    .flash.error { background-color: #f44336; }
+    .flash.success { background-color: #4CAF50; }
+
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bottom-link {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .bottom-link a {
+      text-decoration: none;
+      color: #004080;
+      font-weight: bold;
+    }
+    .input-class {
+      width: 100%;
+      padding: 8px 12px;
+      margin-bottom: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+
+    .btn {
+      background-color: #004080;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #0059b3;
+    }
+
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Agora
+    </div>
+    <div class="navbar-links">
+      <a href="/">Accueil</a>
+      <a href="/inscription">S'inscrire</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>Connexion</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('connexion') }}">
+      {{ form.hidden_tag() }}
+
+      <label for="email">{{ form.email.label.text }}</label>
+      {{ form.email(id="email", class="input-class") }}
+
+      <label for="mot_de_passe">{{ form.mot_de_passe.label.text }}</label>
+      {{ form.mot_de_passe(id="mot_de_passe", class="input-class") }}
+
+      {{ form.submit(class="btn") }}
+    </form>
+
+
+    <div class="bottom-link">
+      <p>Pas encore de compte ? <a href="/inscription">Créer un compte</a></p>
+    </div>
+  </div>
+</body>
+</html>
+

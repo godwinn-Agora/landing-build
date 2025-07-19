@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Agora - Réseau Citoyen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+    />
+    <style>
+      :root {
+        --bleu: #004080;
+        --bleu-clair: #0066cc;
+        --gris: #f0f2f5;
+        --blanc: #ffffff;
+        --gris-clair: #f8f9fa;
+      }
+      body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: var(--gris);
+        color: #333;
+      }
+      .container {
+        max-width: 760px;
+        margin: auto;
+        padding: 24px 16px;
+      }
+      .btn,
+      .interaction-btn,
+      .toggle-commentaires {
+        background-color: transparent;
+        border: 1px solid var(--bleu);
+        color: var(--bleu);
+        font-size: 0.85em;
+        padding: 6px 10px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+      .btn:hover,
+      .interaction-btn:hover,
+      .toggle-commentaires:hover {
+        background-color: var(--bleu);
+        color: white;
+      }
+      .idee {
+        background-color: var(--blanc);
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      }
+      .idee h3 {
+        margin-top: 0;
+      }
+      .idee small {
+        color: #666;
+      }
+      .commentaire {
+        background-color: var(--gris-clair);
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+      }
+      textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        resize: none;
+      }
+      .interactions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .commentaires-repliables {
+        display: none;
+        margin-top: 10px;
+      }
+      .flash {
+        padding: 10px 16px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        color: #fff;
+      }
+      .flash.success {
+        background-color: #28a745;
+      }
+      .flash.error {
+        background-color: #dc3545;
+      }
+    </style>
+</head>
+<body>
+
+<!-- Navbar commune -->
+{% include "_navbar.html" %}
+{% block content %}
+{% endblock %}
+
+<!-- Injection CSRF token pour JS -->
+<script>
+ const csrf_token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+</script>
+
+<!-- Scripts AJAX -->
+<script>
+  window.addEventListener('load', () => {
+    console.log("Script JS chargé");
+
+    // Gestion des likes AJAX
+   setTimeout(() => {
+    document.querySelectorAll('.interaction-btn[data-like]').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        const ideeId = button.dataset.like;
+
+        try {
+          const response = await fetch(`/api/like/${ideeId}`, {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": csrf_token
+            }
+          });
+
+          const data = await response.json();
+
+          if (data.status === "success") {
+            if (data.action === "liked") {
+              button.innerHTML = `❤️ ${data.like_count}`;
+            } else {
+              button.innerHTML = `🤍 ${data.like_count}`;
+            }
+          }
+        } catch (err) {
+          console.error("Erreur AJAX :", err);
+        }
+      });
+   }, 200);
+    });
+
+    // Gestion des commentaires AJAX
+    document.querySelectorAll('form[action^="/commentaire/"]').forEach(form => {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const textarea = form.querySelector("textarea");
+        const contenu = textarea.value.trim();
+        if (!contenu) return;
+
+        const ideeId = form.getAttribute("action").split("/").pop();
+
+        try {
+          const response = await fetch(`/api/commentaire/${ideeId}`, {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/x-www-form-urlencoded",
+              "X-CSRFToken": csrf_token
+            },
+            body: `contenu=${encodeURIComponent(contenu)}`
+          });
+
+          const data = await response.json();
+
+          if (data.status === "success") {
+            const commentaire = document.createElement("div");
+            commentaire.classList.add("commentaire");
+            commentaire.innerHTML = `
+              <strong>${data.utilisateur}</strong> : ${data.contenu}<br>
+              <small>${data.date}</small>
+            `;
+
+            form.parentElement.appendChild(commentaire);
+            textarea.value = "";
+          } else {
+            alert("Erreur : " + data.message);
+          }
+        } catch (err) {
+          console.error("Erreur AJAX :", err);
+        }
+      });
+    });
+  });
+
+</script>
+
+</body>
+</html>

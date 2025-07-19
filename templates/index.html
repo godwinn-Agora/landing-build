@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bienvenu sur Référendum Libre Agora !</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"/>
+  <style>
+    :root {
+      --bleu: #004080;
+      --bleu-clair: #0066cc;
+      --gris: #f0f2f5;
+      --blanc: #ffffff;
+      --gris-clair: #f8f9fa;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--gris);
+      color: #333;
+    }
+    .container {
+      max-width: 760px;
+      margin: auto;
+      padding: 24px 16px;
+    }
+    .btn, .interaction-btn, .toggle-commentaires {
+      background-color: transparent;
+      border: 1px solid var(--bleu);
+      color: var(--bleu);
+      font-size: 0.85em;
+      padding: 6px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .btn:hover, .interaction-btn:hover, .toggle-commentaires:hover {
+      background-color: var(--bleu);
+      color: white;
+    }
+    .idee {
+      background-color: var(--blanc);
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .idee h3 {
+      margin-top: 0;
+    }
+    .idee small {
+      color: #666;
+    }
+    .commentaire {
+      background-color: var(--gris-clair);
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      resize: none;
+    }
+    .interactions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .commentaires-repliables {
+      display: none;
+      margin-top: 10px;
+    }
+    .flash {
+      padding: 10px 16px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      color: #fff;
+    }
+    .flash.success { background-color: #28a745; }
+    .flash.error { background-color: #dc3545; }
+  </style>
+</head>
+<body>
+{% include "base.html" %}
+{% block content %}
+{% endblock %}
+
+<div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if current_user.is_authenticated %}
+    <form method="POST" action="/">
+        {{ form.hidden_tag() }}
+
+        <label for="{{ form.titre.id }}">{{ form.titre.label.text }}</label>
+        {{ form.titre(class="form-control") }}
+
+        <label for="{{ form.contenu.id }}">{{ form.contenu.label.text }}</label>
+        {{ form.contenu(class="form-control") }}
+
+        {{ form.submit(class="btn") }}
+    </form>
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+        <h2>Mes idées</h2>
+        {% for idee in idees %}
+         {% if idee.utilisateur_id == current_user.id %}
+            <div class="idee">
+                <h3>{{ idee.titre }}</h3>
+                <p>{{ idee.contenu }}</p>
+                <div class="interactions">
+                    <form action="/supprimer/{{ idee.id }}" method="POST" style="display:inline-block;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn" type="submit">🗑️ Supprimer</button>
+                    </form>
+                    <form action="/modifier/{{ idee.id }}/form" method="GET" style="display:inline-block;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn" type="submit">✏️ Modifier</button>
+                    </form>
+                </div>
+                <small>Posté le {{ idee.date_creation.strftime('%d/%m/%Y %H:%M') }}</small>
+            </div>
+         {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+     <h2>Toutes les idées</h2>
+        {% for idee in idees %}
+            <div class="idee">
+                <h3>🧠 {{ idee.titre }}</h3>
+                <small>Par {{ idee.utilisateur.email }} - {{ idee.date_creation.strftime('%d/%m/%Y %H:%M') }}</small>
+                <p>{{ idee.contenu }}</p>
+
+                <div class="interactions">
+                    <button type="button" class="interaction-btn" data-like="{{ idee.id }}">
+                            {% if idee.likes | selectattr("utilisateur_id", "equalto", current_user.id) | list | length > 0 %}
+                                ❤️ {{ idee.likes|length }}
+                            {% else %}
+                                🤍 {{ idee.likes|length }}
+                            {% endif %}
+                        </button>
+
+
+                    <button class="toggle-commentaires btn" data-id="{{ idee.id }}">
+                        💬 {{ idee.commentaires|length }} commentaire{{ 's' if idee.commentaires|length > 1 }}
+                    </button>
+                </div>
+
+                <!-- Formulaire d’ajout de commentaire -->
+                <form method="POST" action="/commentaire/{{ idee.id }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <textarea name="contenu" rows="2" placeholder="Ajouter un commentaire..." required></textarea>
+                    <button class="btn" type="submit">Commenter</button>
+                </form>
+
+                <!-- Bloc commentaires -->
+                {% if idee.commentaires %}
+                <div class="commentaires" id="commentaires-{{ idee.id }}" style="display: none;">
+                    <strong>Commentaires :</strong>
+                    {% for commentaire in idee.commentaires %}
+                    <div class="commentaire">
+                        <strong>{{ commentaire.utilisateur.email }}</strong> : {{ commentaire.contenu }}<br>
+                        <small>{{ commentaire.date_commentaire.strftime('%d/%m/%Y %H:%M') }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <h2>Top idées les plus populaires</h2>
+    {% for idee in idees %}
+    <div class="idee">
+        <h3>{{ idee.titre }}</h3>
+        <p>{{ idee.contenu }}</p>
+        <small>Posté le {{ idee.date_creation.strftime('%d/%m/%Y %H:%M') }}</small>
+    </div>
+    {% endfor %}
+
+</div>
+
+<script>
+document.querySelectorAll(".toggle-commentaires").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-id");
+        const bloc = document.getElementById("commentaires-" + id);
+        bloc.style.display = bloc.style.display === "none" ? "block" : "none";
+    });
+});
+</script>
+
+</body>
+</html>
